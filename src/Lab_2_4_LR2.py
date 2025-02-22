@@ -108,10 +108,11 @@ class LinearRegressor:
             self.intercept -= learning_rate * gradient[0]
             self.coefficients -= learning_rate * gradient[1:]
 
-            # Print the loss every 10 epochs
-            if epoch % 1000 == 0:
+            # Print the loss every 100000 epochs
+            if epoch % 100000:
                 mse = np.mean(error ** 2)
                 print(f"Epoch {epoch}: MSE = {mse}")
+    
 
     def predict(self, X):
         """
@@ -196,6 +197,7 @@ def one_hot_encode(X, categorical_indices, drop_first=False):
     Returns:
         np.ndarray: Transformed array with one-hot encoded columns.
     """
+
     X_transformed = X.copy()
     for index in sorted(categorical_indices, reverse=True):
         # Extract the categorical column
