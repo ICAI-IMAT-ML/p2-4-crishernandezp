@@ -39,7 +39,8 @@ class LinearRegressor:
         if np.ndim(X) == 1:
             X = X.reshape(-1, 1)
 
-        X_with_bias = np.insert(X, 0, 1, axis=1)  # Adding a column of ones for intercept
+        # X_with_bias = np.insert(X, 0, 1, axis=1)  # Adding a column of ones for intercept
+        X_with_bias = np.c_[np.ones(X.shape[0]), X]
 
         if method == "least_squares":
             self.fit_multiple(X_with_bias, y)
@@ -96,21 +97,30 @@ class LinearRegressor:
         self.coefficients = np.random.rand(X.shape[1] - 1) * 0.01  # Small random numbers
         self.intercept = np.random.rand() * 0.01
 
+        # Variables para almacenar la evolución de la pérdida y los parámetros
+        self.loss_history = []
+        self.parameters_history = []
+
         # Implement gradient descent
         for epoch in range(iterations):
             predictions = self.predict(X[:,1:])
             error = predictions - y
             
             # Compute gradients
-            gradient = (1 / m) * X.T.dot(error)
+            gradient = (learning_rate / m) * X.T.dot(error)
             
             # Update parameters
-            self.intercept -= learning_rate * gradient[0]
-            self.coefficients -= learning_rate * gradient[1:]
+            self.intercept -= gradient[0]
+            self.coefficients -= gradient[1:]
+
+            # Almacenar valores
+            mse = np.mean(error ** 2)
+            self.loss_history.append(mse)
+            self.parameters_history.append((self.intercept, *self.coefficients))
 
             # Print the loss every 100000 epochs
-            if epoch % 100000:
-                mse = np.mean(error ** 2)
+            if epoch % 100000 == 0:
+                mse = np.power(evaluate_regression(y, predictions)["RMSE"], 2)
                 print(f"Epoch {epoch}: MSE = {mse}")
     
 
@@ -136,7 +146,7 @@ class LinearRegressor:
 
         # Predict when X is only one variable
         if np.ndim(X) == 1:
-            predictions = self.intercept + self.coefficients[0] * X # --> y = b0 + b1*X
+            predictions = self.intercept + self.coefficients * X # --> y = b0 + b1*X
         
         # Predict when X is more than one variable
         else:
